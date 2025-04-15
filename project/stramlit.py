@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import pickle
 import numpy as np
+import json
 
 # Diccionarios de conversión (ejemplos)
 mes = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'}
@@ -28,12 +29,17 @@ inv_dic_meteo = {v: k for k, v in condicion_meteo.items()}
 inv_dic_provincia = {v: k for k, v in cod_provincia.items()}
 inv_dic_mecanismo = {v: k for k, v in tipo_mecanismo.items()}
 
-# Hay que poner todas las carreteras
-opciones_carretera = ['Carretera 1', 'Carretera 2', 'Carretera 3', 'Carretera 4', 'Carretera 5']
-
-# Cargar el modelo (asegúrate de que el archivo exista y esté en la ruta correcta)
+# Extraer los nombres de las carreteras
 try:
-    modelo = pickle.load(open('modelo_accidente.pkl', 'rb'))
+    with open("../data/carreteras.txt", "r", encoding="utf-8") as f:
+        opciones_carretera = json.load(f)
+except Exception as e:
+    st.error(f"Error al leer el archivo de carreteras: {e}")
+    opciones_carretera = []
+
+# Cargar el modelo
+try:
+    modelo = pickle.load(open('../model/modelo_accidente.pkl', 'rb'))
 except FileNotFoundError:
     st.error("Error: Archivo 'modelo_accidente.pkl' no encontrado.")
     st.stop()
@@ -59,7 +65,7 @@ total_victimas = st.sidebar.number_input("Número total de víctimas", min_value
 total_vehiculos = st.sidebar.number_input("Número total de vehículos involucrados", min_value=1, max_value=50, value=1)
 
 # Widget para la hora (de 0 a 23)
-hora = st.sidebar.number_input("Hora (0-23)", min_value=0, max_value=23, value=12)
+hora = st.sidebar.number_input("Introducir hora sin minutos (0-23)", min_value=0, max_value=23, value=12)
 
 # Convertir la hora numérica a sus representaciones cíclicas
 hora_sin = np.sin(2 * np.pi * hora / 24)
